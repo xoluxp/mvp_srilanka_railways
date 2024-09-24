@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sri Lanka Railways - Enhanced</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #e8491d;
+            --background-color: #f4f4f4;
+            --text-color: #333;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            background-color: var(--background-color);
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            padding: 20px;
+        }
+        header {
+            background: var(--primary-color);
+            color: #ffffff;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 {
+            margin: 0;
+        }
+        .logo {
+            width: 50px;
+            height: 50px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+        }
+        nav ul li {
+            display: inline;
+            margin-left: 20px;
+        }
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+        #map {
+            height: 400px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .card {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        form select, form input, form button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        form button {
+            background-color: var(--secondary-color);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        form button:hover {
+            background-color: #c73e1d;
+        }
+        #realTimeUpdates, #popularRoutes {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .language-switcher {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+        .language-switcher button {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #fff;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        @media screen and (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
+            body {
+                font-size: 14px;
+            }
+            header .container {
+                flex-direction: column;
+            }
+            nav ul {
+                margin-top: 10px;
+            }
+            nav ul li {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">SLR</div>
+            <h1>Sri Lanka Railways</h1>
+            <nav>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="logon.html">Sign-In</a></li>
+                    <li><a href="#schedules">Schedules</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="language-switcher">
+            <button onclick="changeLanguage('en')">English</button>
+            <button onclick="changeLanguage('si')">සිංහල</button>
+            <button onclick="changeLanguage('ta')">தமிழ்</button>
+        </div>
+
+        <div id="map" class="card"></div>
+
+        <div class="card">
+            <h2>Book Your Journey</h2>
+            <form id="bookingForm">
+                <div style="display: flex; justify-content: space-between;">
+                    <select id="origin" required style="width: 45%;">
+                        <option value="">Select Origin</option>
+                        <option value="Colombo">Colombo (Fort)</option>
+                        <option value="Kandy">Kandy</option>
+                        <option value="Galle">Galle</option>
+                    </select>
+                    <button type="button" onclick="swapStations()" style="width: 8%;">⇄</button>
+                    <select id="destination" required style="width: 45%;">
+                        <option value="">Select Destination</option>
+                        <option value="Kankesanthurai">Kankesanthurai</option>
+                        <option value="Batticaloa">Batticaloa</option>
+                        <option value="Badulla">Badulla</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between;">
+                    <div style="width: 45%;">
+                        <label for="journeyDate">Departure Date</label>
+                        <input type="date" id="journeyDate" required>
+                    </div>
+                    <div style="width: 45%;">
+                        <label for="returnDate">Return Date (Optional)</label>
+                        <input type="date" id="returnDate">
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between;">
+                    <select id="trainClass" required style="width: 45%;">
+                        <option value="">Select Class</option>
+                        <option value="1">First Class</option>
+                        <option value="2">Second Class</option>
+                        <option value="3">Third Class</option>
+                    </select>
+                    <div style="width: 45%;">
+                        <label for="passengers">Number of Passengers</label>
+                        <input type="number" id="passengers" min="1" max="10" value="1" required>
+                    </div>
+                </div>
+                
+                <div id="fareEstimate" style="margin-top: 10px; font-weight: bold;"></div>
+                
+                <button type="submit">Search Trains</button>
+            </form>
+        </div>
+
+        <div id="searchResults" class="card" style="display: none;"></div>
+
+        <div id="realTimeUpdates" class="card">
+            <h2>Real-Time Updates</h2>
+            <div id="trainStatus"></div>
+        </div>
+
+        <div id="popularRoutes" class="card">
+            <h2>Popular Routes</h2>
+            <button onclick="selectPopularRoute('Colombo', 'Kandy')">Colombo - Kandy</button>
+            <button onclick="selectPopularRoute('Colombo', 'Galle')">Colombo - Galle</button>
+            <button onclick="selectPopularRoute('Colombo', 'Jaffna')">Colombo - Jaffna</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([7.8731, 80.7718], 7);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var stations = [
+            {name: "Colombo Fort", lat: 6.9344, lon: 79.8428},
+            {name: "Kandy", lat: 7.2906, lon: 80.6337},
+            {name: "Galle", lat: 6.0535, lon: 80.2210},
+            {name: "Kankesanthurai", lat: 9.8167, lon: 80.0333},
+            {name: "Batticaloa", lat: 7.7167, lon: 81.7000},
+            {name: "Badulla", lat: 6.9889, lon: 81.0557}
+        ];
+
+        stations.forEach(function(station) {
+            L.marker([station.lat, station.lon])
+                .addTo(map)
+                .bindPopup(station.name)
+                .on('click', function() {
+                    document.getElementById('origin').value = station.name;
+                });
+        });
+
+        function swapStations() {
+            var origin = document.getElementById('origin');
+            var destination = document.getElementById('destination');
+            var temp = origin.value;
+            origin.value = destination.value;
+            destination.value = temp;
+            updateFareEstimate();
+        }
+
+        function selectPopularRoute(origin, destination) {
+            document.getElementById('origin').value = origin;
+            document.getElementById('destination').value = destination;
+            updateFareEstimate();
+        }
+
+        function updateFareEstimate() {
+            var origin = document.getElementById('origin').value;
+            var destination = document.getElementById('destination').value;
+            var trainClass = document.getElementById('trainClass').value;
+            var passengers = document.getElementById('passengers').value;
+
+            if (origin && destination && trainClass && passengers) {
+                // This is a placeholder calculation. In a real application, you would fetch the actual fare from a server.
+                var baseFare = Math.floor(Math.random() * 1000) + 500; // Random fare between 500 and 1500
+                var classFactor = trainClass === '1' ? 2 : trainClass === '2' ? 1.5 : 1;
+                var totalFare = baseFare * classFactor * passengers;
+
+                document.getElementById('fareEstimate').innerHTML = `Estimated Fare: Rs. ${totalFare.toFixed(2)}`;
+            } else {
+                document.getElementById('fareEstimate').innerHTML = '';
+            }
+        }
+
+        document.getElementById('origin').addEventListener('change', updateFareEstimate);
+        document.getElementById('destination').addEventListener('change', updateFareEstimate);
+        document.getElementById('trainClass').addEventListener('change', updateFareEstimate);
+        document.getElementById('passengers').addEventListener('change', updateFareEstimate);
+
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            var formData = {
+                origin: document.getElementById('origin').value,
+                destination: document.getElementById('destination').value,
+                departureDate: document.getElementById('journeyDate').value,
+                returnDate: document.getElementById('returnDate').value,
+                class: document.getElementById('trainClass').value,
+                passengers: document.getElementById('passengers').value
+            };
+            
+            var searchResults = document.getElementById('searchResults');
+            searchResults.style.display = 'block';
+            searchResults.innerHTML = `
+                <h3>Search Results:</h3>
+                <p>Origin: ${formData.origin}</p>
+                <p>Destination: ${formData.destination}</p>
+                <p>Departure Date: ${formData.departureDate}</p>
+                <p>Return Date: ${formData.returnDate || 'N/A'}</p>
+                <p>Class: ${formData.class}</p>
+                <p>Passengers: ${formData.passengers}</p>
+                <p>Estimated Fare: ${document.getElementById('fareEstimate').innerHTML}</p>
+                <button onclick="proceedToBooking()">Proceed to Booking</button>
+            `;
+        });
+
+        function proceedToBooking() {
+            alert('Proceeding to booking... This feature is not implemented in this demo.');
+        }
+
+        function updateTrainStatus() {
+            var trains = [
+                {id: '12345', number: 'T1001', currentStation: 'Colombo Fort', expectedArrival: '14:30'},
+                {id: '67890', number: 'T2002', currentStation: 'Kandy', expectedArrival: '16:45'}
+            ];
+
+            var updates = trains.map(train => `
+                <p>Train ${train.number} is currently at ${train.currentStation}</p>
+                <p>Expected arrival at destination: ${train.expectedArrival}</p>
+            `).join('<hr>');
+
+            document.getElementById('trainStatus').innerHTML = updates;
+        }
+
+        updateTrainStatus();
+        setInterval(updateTrainStatus, 30000);
+
+        function changeLanguage(lang) {
+            // This is a placeholder function. In a real application, you would implement actual language switching logic here.
+            alert(`Switching to ${lang === 'en' ? 'English' : lang === 'si' ? 'Sinhala' : 'Tamil'} language. This feature is not fully implemented in this demo.`);
+        }
+    </script>
+</body>
+</html>

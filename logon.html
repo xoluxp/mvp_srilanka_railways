@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sri Lanka Railways - Login/Register</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+		<header>
+			<h1>Sri Lanka Railways</h1>
+			<nav>
+				<ul>
+					<li><a href="index.html">Home</a></li>
+					<li><a href="logon.html">Login/Register</a></li>
+					<li><a href="contact.html">Contact</a></li>
+				</ul>
+			</nav>
+		</header>
+
+    <main>
+        <div class="container">
+            <div class="tabs">
+                <button class="tab-btn active" data-target="login">Login</button>
+                <button class="tab-btn" data-target="register">Register</button>
+            </div>
+            
+            <div id="login" class="form-container active">
+                <h2>Login</h2>
+                <form id="login-form">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" required>
+                    
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required>
+                    
+                    <button type="submit">Login</button>
+                </form>
+            </div>
+            
+            <div id="register" class="form-container">
+                <h2>Register</h2>
+                <form id="register-form">
+                    <label for="register-username">Username</label>
+                    <input type="text" id="register-username" required>
+                    
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" required>
+                    
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" required>
+                    
+                    <button type="submit">Register</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Sri Lanka Railways. All rights reserved.</p>
+        <nav>
+            <ul>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
+                <li><a href="contact.html">Contact Us</a></li>
+            </ul>
+        </nav>
+    </footer>
+    
+    <script src="script.js"></script>
+</body>
+</html>
